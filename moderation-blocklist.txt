@@ -1,0 +1,1 @@
+# Add one vulgar, derogatory, unsafe, or spam phrase per line. One phrase per line; lines starting with # are ignored.

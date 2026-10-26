@@ -1,0 +1,13 @@
+# Local credentials and user-generated data
+.env
+.env.*.local
+data/community-reports.json
+data/community-reports.json.tmp
+
+# Local runtime output
+*.log
+
+# Android/Gradle generated files
+.gradle/
+**/build/
+local.properties
