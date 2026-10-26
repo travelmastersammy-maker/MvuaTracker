@@ -30,7 +30,7 @@ Open-Meteo's free API is for non-commercial use; commercial use needs the approp
 
 Users can submit an anonymous observation with a Kenyan town, date, time range, severity, and a comment of up to 280 characters. Reports are stored in `data/community-reports.json` and shown on the home screen when they are within 30 km of the selected forecast location and the observed period ended within the last 24 hours. The feed refreshes every minute while the page is open. Older observations can be submitted for up to seven days but are not shown in the live feed.
 
-Community posts are unverified and comments are escaped before display. This local prototype has no accounts, abuse-reporting flow, or moderation tools; add those and a managed data store before opening submissions to the public.
+Community posts are unverified and comments are escaped before display. This prototype has no accounts, user comment-reporting flow, or managed data store. Automated comment screening is fail-closed; before public launch, add a privacy notice, a defined deletion schedule, abuse reporting, and a production data store with access controls.
 
 ## Comment screening
 
