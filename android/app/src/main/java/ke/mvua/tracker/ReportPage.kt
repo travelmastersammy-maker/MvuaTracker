@@ -18,8 +18,11 @@ import ke.mvua.tracker.data.Place
 import kotlinx.coroutines.launch
 import java.time.LocalDate
 import java.time.LocalTime
+import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.util.Locale
+
+private val KenyaZone = ZoneId.of("Africa/Nairobi")
 
 @Composable
 fun ReportPage(repository: MvuaRepository, initialPlace: Place, onCancel: () -> Unit, onSubmitted: (Place, String) -> Unit) {
