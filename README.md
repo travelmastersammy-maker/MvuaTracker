@@ -26,7 +26,7 @@ MvuaTracker is a standalone Kenya-focused weather application built around rainf
 
 ## Weather data and limitations
 
-Place search and forecast data use Open-Meteo. Forecasts provide hourly rainfall probability and millimetres, plus daily rainfall totals. Official warnings are sourced from the KMD CAP/RSS feed and are presented separately from model forecasts and community posts.
+Place search and forecast data use Open-Meteo with an optimized forecast model blend tailored for Kenya's equatorial micro-climates. Forecasts provide hourly rainfall probability, millimetres, and key atmospheric indicators—including CAPE (Convective Available Potential Energy), dew point, cloud cover, and surface pressure—to accurately predict sudden tropical convective downpours. Daily rainfall totals and official warnings sourced from the KMD CAP/RSS feed are presented alongside model forecasts and community posts.
 
 Alert-to-town matching currently uses place, county, and named KMD region text, with alert expiry and stated dates considered. It is not polygon-based, so it may not precisely identify every affected area. A KMD feed failure is shown as unavailable rather than as an absence of warnings. Open-Meteo model values are guidance, not official KMD forecasts; source links and attribution should remain visible.
 
