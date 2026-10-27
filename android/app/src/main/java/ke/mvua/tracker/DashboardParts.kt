@@ -66,7 +66,7 @@ fun SearchPanel(query: String, onQuery: (String) -> Unit, searching: Boolean, re
 
 @Composable
 fun RainHero(snapshot: ke.mvua.tracker.data.WeatherSnapshot, refreshing: Boolean) {
-    Box(Modifier.fillMaxWidth().clip(RoundedCornerShape(24.dp)).background(Brush.verticalGradient(listOf(DeepOlive, Olive, Color(0xFF718144))).padding(18.dp))) {
+    Box(Modifier.fillMaxWidth().clip(RoundedCornerShape(24.dp)).background(Brush.verticalGradient(listOf(DeepOlive, Olive, Color(0xFF718144)))).padding(18.dp)) {
         Column(Modifier.align(Alignment.TopStart)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text("TODAY'S RAINFALL", fontSize = 10.sp, color = Color(0xFFE3E7CE), fontWeight = FontWeight.Bold, letterSpacing = 1.2.sp)
