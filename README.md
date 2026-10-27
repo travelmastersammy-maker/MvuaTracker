@@ -1,49 +1,71 @@
-# MvuaTracker live-data starter
+# MvuaTracker
 
-This is a small live-data prototype isolated from the existing kernel files in this workspace. It connects:
+[![Android debug build](https://github.com/travelmastersammy-maker/MvuaTracker/actions/workflows/android-build.yml/badge.svg)](https://github.com/travelmastersammy-maker/MvuaTracker/actions/workflows/android-build.yml)
 
-- Open-Meteo geocoding, restricted to Kenya, for place search.
-- Open-Meteo forecast data for hourly rain chance and millimetres plus seven daily rain totals.
-- Kenya Meteorological Department's CAP RSS feed for official warning headlines.
+MvuaTracker is a standalone Kenya-focused weather application built around rainfall: how much rain is forecast, where official warnings apply, and what people nearby are observing. This repository contains the web app, Node.js API, and native Android app as one independent product.
 
-The browser UI talks only to the local API. The API keeps source fetching and response normalization behind one boundary, and caches geocoding for an hour, forecasts for 15 minutes, and KMD alerts for 5 minutes. The Android repository in `android/MvuaRepository.kt` calls the same endpoints.
+## What it does
 
-## Run locally
+- Search Kenyan towns and counties.
+- View hourly rain probability and rainfall amounts, plus a seven-day outlook with date and time filters.
+- Read Kenya Meteorological Department (KMD) weather alerts matched to the selected location.
+- Submit community rain observations with a place, observation date and time, severity, and optional comment.
+- View recent nearby community reports, clearly labelled as unverified.
+- Screen comments before publication using local safety checks and optional automated moderation.
+- Use the responsive web app or the native Android client, which share the same API.
 
-Requires Node.js 18 or newer. From this directory run:
+## Project components
+
+- `public/` — responsive web client.
+- `server.js` — Node.js API, source adapters, caching, community reports, and comment screening.
+- `android/` — Kotlin and Jetpack Compose Android app and its Gradle build.
+- `.github/workflows/android-build.yml` — CI workflow that builds a debug APK and uploads it as an Actions artifact.
+- `PRIVACY_POLICY_DRAFT.md` — policy draft that still needs operator details and a public URL before release.
+
+## Weather data and limitations
+
+Place search and forecast data use Open-Meteo. Forecasts provide hourly rainfall probability and millimetres, plus daily rainfall totals. Official warnings are sourced from the KMD CAP/RSS feed and are presented separately from model forecasts and community posts.
+
+Alert-to-town matching currently uses place, county, and named KMD region text, with alert expiry and stated dates considered. It is not polygon-based, so it may not precisely identify every affected area. A KMD feed failure is shown as unavailable rather than as an absence of warnings. Open-Meteo model values are guidance, not official KMD forecasts; source links and attribution should remain visible.
+
+## Run the web app and API locally
+
+Requires Node.js 18 or newer. From the repository root:
 
 ```powershell
 node server.js
 ```
 
-Open `http://localhost:4173`. Select a place from Kenya search results. To use from an Android emulator, use `http://10.0.2.2:4173` as the API base URL. A physical phone needs the computer's LAN address and both devices on the same network. For a released app, deploy this service behind HTTPS and change the Android base URL.
+Open `http://localhost:4173`. The server exposes `/api/search`, `/api/weather`, and `/api/reports`. It caches geocoding for an hour, forecasts for 15 minutes, and KMD alerts for 5 minutes.
 
-## Source and alert handling
+For community comment screening, copy `.env.example` to `.env`, set `OPENAI_API_KEY` on the server, and restart it. The API sends comment text to the moderation service when configured. Without the key, comments remain pending rather than being published unscreened. Never place this key in the web client or Android app. Pending comments can be reviewed using:
 
-Forecast values are model guidance, credited to Open-Meteo. KMD warnings are returned in a separate field and are labeled official. A failed KMD feed is rendered as unavailable, never as “no warnings.” Community rain reports are submitted separately and appear in the local live feed when they match the selected location and time window. Location matching checks searched town and county as whole phrases, explicitly nationwide wording, and named KMD regions. CAP expiry and dates stated in alert text are honored; alerts without either are treated as stale after seven days. Matching remains text-based rather than polygon-based, so keep the KMD source link visible.
+```powershell
+node review-community-comments.js
+```
 
-Open-Meteo's free API is for non-commercial use; commercial use needs the appropriate subscription. Retain clear attribution in the app. KMD bulk data access or broader reuse should be agreed with KMD.
+Community reports currently use local JSON storage at `data/community-reports.json`. The feed shows reports near the selected forecast location from the last 24 hours; observations can be submitted for up to seven days. This file-based store is suitable for local development, not a public production service. Public launch needs durable, access-controlled storage, retention/deletion handling, rate limiting, abuse reporting, and operational monitoring.
 
+## Android app
 
+The native Android client is in `android/`. It uses the same API for location search, forecasts, KMD warnings, and community reports. Its olive-and-savannah design includes the rain dashboard, selectable hourly forecast, date ranges, community feed, report form, and privacy information.
 
-## Community rain reports
+Open the `android/` directory in Android Studio to sync and run the app. The debug build defaults to `http://10.0.2.2:4174` for an Android emulator. To run the local API on that port, use `$env:PORT = "4174"` and then `node server.js` in PowerShell. A physical device needs an API address reachable over the local network. Debug builds allow cleartext only to support local development; release builds require HTTPS.
 
-Users can submit an anonymous observation with a Kenyan town, date, time range, severity, and a comment of up to 280 characters. Reports are stored in `data/community-reports.json` and shown on the home screen when they are within 30 km of the selected forecast location and the observed period ended within the last 24 hours. The feed refreshes every minute while the page is open. Older observations can be submitted for up to seven days but are not shown in the live feed.
+GitHub Actions currently builds a **debug APK**. The latest successful build is [run #40454946566](https://github.com/travelmastersammy-maker/MvuaTracker/actions/runs/40454946566); download its `mvuatracker-debug-apk` artifact to install and test. This APK is for testing and is not a Play Store release bundle.
 
-Community posts are unverified and comments are escaped before display. This prototype has no accounts, user comment-reporting flow, or managed data store. Automated comment screening is fail-closed; before public launch, add a privacy notice, a defined deletion schedule, abuse reporting, and a production data store with access controls.
+## Current release status
 
-## Comment screening
+**Development status:** The web/API project is runnable locally, and the native Android debug APK builds successfully in GitHub Actions.
 
-Comments are screened before publication. The server first checks the local phrase list in `moderation-blocklist.txt` and holds comments containing a listed phrase, a possible email/phone number, or an external link. If `OPENAI_API_KEY` is configured in the server environment, the server also sends only the comment text to OpenAI's Moderation API (`omni-moderation-latest`). A flagged result or service error leaves the comment hidden; the rain severity/location report can still appear, marked unverified. With no API key, comments fail closed and remain pending review rather than being published unscreened.
+**Google Play status:** Not ready for submission yet. A release requires a deployed HTTPS API with production storage and moderation secrets, a completed and publicly hosted privacy policy, release signing/Play App Signing configuration, a signed Android App Bundle, device testing, and completed Play Console declarations and listing assets. See [`android/PLAY_RELEASE_CHECKLIST.md`](android/PLAY_RELEASE_CHECKLIST.md).
 
-Add locally relevant English, Kiswahili, and Sheng phrases to `moderation-blocklist.txt`, one phrase per line. Pending comments can be reviewed asynchronously with `node review-community-comments.js`; stop the server first so review writes do not race with new submissions. The review tool approves or rejects each comment while preserving the underlying unverified rain report.
+## Community safety and privacy
 
-For automated screening, copy `.env.example` to `.env` in this project folder and set `OPENAI_API_KEY` there. Restart the server after adding or changing the key. The server re-screens previously held comments at startup and publishes only those that pass. Never put the key in the browser or Android app. The moderation endpoint returns category flags/scores for application policy; keep reviewing false positives and adjust the local list as needed. See the [OpenAI Moderation guide](https://developers.openai.com/api/docs/guides/moderation).
+Rain observations are user-submitted and unverified; they must not be presented as official warnings. Comments are checked against a local phrase list and patterns for contact details or links. When configured, the server also uses automated content moderation; flagged results or service failures keep the comment hidden while the weather report can remain visible.
 
-## Native Android app
+The app does not request device GPS permission or require an account. Users choose a place manually. The privacy policy remains a draft until the operator fills in the data controller/contact, provider details, lawful basis, retention/deletion process, user-request contact, and intended audience, then publishes it at a stable HTTPS URL. Review the actual deployed data flows before completing Google Play’s Data safety declaration.
 
-The `android/` directory contains the native Kotlin/Jetpack Compose Android client. It includes the olive/savannah dashboard, Kenya place search, rainfall forecasts and time/date filters, KMD alert cards, unverified community updates, report submission, and an in-app privacy notice. It connects to the existing Node API through the same `/api/search`, `/api/weather`, and `/api/reports` endpoints.
+## Attribution and service terms
 
-For emulator development, the debug variant points to `http://10.0.2.2:4174`; start the API from this project root with `node server.js`. Release builds require an HTTPS deployment, public privacy policy URL, and locally stored signing credentials. See [`android/PLAY_RELEASE_CHECKLIST.md`](android/PLAY_RELEASE_CHECKLIST.md) and [`PRIVACY_POLICY_DRAFT.md`](PRIVACY_POLICY_DRAFT.md). The privacy policy is intentionally marked as a draft and must be completed and published before submitting to Google Play.
-
-This environment did not have Java, Gradle, or the Android SDK available at the time this project was prepared, so a native APK/AAB build has not been verified here.
+Keep Open-Meteo attribution in the app and review its current terms before commercial use. Coordinate broader KMD data reuse with KMD. Provider terms and data handling should be reviewed again before public launch.
