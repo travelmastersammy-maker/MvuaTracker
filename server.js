@@ -29,6 +29,9 @@ const COMMUNITY_FLAGS_FILE = path.join(REPORT_DIR, 'community-flags.json');
 const COMMUNITY_TERMS_VERSION = '2026-10-27-v1';
 const MODERATION_BLOCKLIST_FILE = path.join(__dirname, 'moderation-blocklist.txt');
 const REPORT_MAX_AGE = 24 * 60 * 60 * 1000;
+const REPORT_RETENTION_DAYS = 30;
+const REPORT_RETENTION_MS = REPORT_RETENTION_DAYS * 24 * 60 * 60 * 1000;
+const RETENTION_SWEEP_INTERVAL_MS = 60 * 60 * 1000;
 const REPORT_RADIUS_KM = 30;
 const REPORT_SEVERITIES = new Set(['No rain', 'Drizzle', 'Slight shower', 'Medium rain', 'Heavy rain', 'Storm / thunderstorm']);
 fs.mkdirSync(REPORT_DIR, { recursive: true });
@@ -216,6 +219,29 @@ async function saveCommunityFlags(flags) {
     return;
   }
   const temp = COMMUNITY_FLAGS_FILE + '.tmp'; fs.writeFileSync(temp, JSON.stringify(flags.slice(-20000)), 'utf8'); fs.renameSync(temp, COMMUNITY_FLAGS_FILE);
+}
+async function purgeExpiredCommunityData(now = Date.now()) {
+  const cutoff = new Date(now - REPORT_RETENTION_MS);
+  if (pool) {
+    const client = await pool.connect();
+    try {
+      await client.query('BEGIN');
+      const expiredFlags = await client.query('DELETE FROM community_flags WHERE created_at < $1 RETURNING id', [cutoff]);
+      const expiredReports = await client.query('DELETE FROM community_reports WHERE reported_at < $1 RETURNING id', [cutoff]);
+      await client.query('COMMIT');
+      return { reports: expiredReports.rowCount, flags: expiredFlags.rowCount };
+    } catch (error) { await client.query('ROLLBACK'); throw error; }
+    finally { client.release(); }
+  }
+  const reports = await loadCommunityReports();
+  const retainedReports = reports.filter(report => Number.isFinite(Date.parse(report.reportedAt)) && Date.parse(report.reportedAt) >= cutoff.getTime());
+  const retainedIds = new Set(retainedReports.map(report => report.id));
+  const flags = await loadCommunityFlags();
+  const retainedFlags = flags.filter(flag => Number.isFinite(Date.parse(flag.createdAt)) && Date.parse(flag.createdAt) >= cutoff.getTime() && retainedIds.has(flag.targetReportId));
+  const deleted = { reports: reports.length - retainedReports.length, flags: flags.length - retainedFlags.length };
+  if (deleted.reports) await saveCommunityReports(retainedReports);
+  if (deleted.flags) await saveCommunityFlags(retainedFlags);
+  return deleted;
 }
 function readRequestJson(req, maxBytes = 8192) {
   return new Promise((resolve, reject) => {
@@ -422,7 +448,7 @@ async function route(req, res) {
   }
   if (url.pathname === '/api/health') {
     if (pool) await pool.query('SELECT 1');
-    return send(res, 200, { status: 'ok', service: 'MvuaTracker API', time: new Date().toISOString(), database: pool ? 'postgres' : 'local-json', moderationConfigured: Boolean(process.env.OPENAI_API_KEY), communityTermsVersion: COMMUNITY_TERMS_VERSION });
+    return send(res, 200, { status: 'ok', service: 'MvuaTracker API', time: new Date().toISOString(), database: pool ? 'postgres' : 'local-json', moderationConfigured: Boolean(process.env.OPENAI_API_KEY), communityTermsVersion: COMMUNITY_TERMS_VERSION, communityRetentionDays: REPORT_RETENTION_DAYS });
   }
   let filePath = url.pathname === '/' ? path.join(PUBLIC_DIR, 'index.html') : path.resolve(PUBLIC_DIR, `.${decodeURIComponent(url.pathname)}`);
   if (!filePath.startsWith(PUBLIC_DIR + path.sep) && filePath !== path.join(PUBLIC_DIR, 'index.html')) return send(res, 403, { error: 'Forbidden' });
@@ -454,10 +480,18 @@ async function rescreenPendingComments() {
 async function startServer() {
   if (process.env.NODE_ENV === 'production' && !pool) throw new Error('DATABASE_URL must be configured in production.');
   await initCommunityStorage();
+  const startupPurge = await purgeExpiredCommunityData();
+  if (startupPurge.reports || startupPurge.flags) console.log(`Retention cleanup removed ${startupPurge.reports} reports and ${startupPurge.flags} flags.`);
   http.createServer((req, res) => { route(req, res).catch(error => send(res, 500, { error: 'Unexpected server error.' })); })
     .listen(PORT, '0.0.0.0', () => {
       console.log(`MvuaTracker is ready at http://localhost:${PORT}`);
       rescreenPendingComments().catch(() => console.error('Could not re-screen pending comments.'));
+      const retentionTimer = setInterval(() => {
+        purgeExpiredCommunityData().then(result => {
+          if (result.reports || result.flags) console.log(`Retention cleanup removed ${result.reports} reports and ${result.flags} flags.`);
+        }).catch(error => console.error('Could not complete community retention cleanup:', error.message));
+      }, RETENTION_SWEEP_INTERVAL_MS);
+      retentionTimer.unref();
     });
 }
 startServer().catch(error => { console.error('Could not start MvuaTracker:', error.message); process.exitCode = 1; });

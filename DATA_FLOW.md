@@ -24,7 +24,7 @@ The Android release build receives the deployed API address through Gradle prope
 
 ## Data still requiring an operator decision
 
-- Reports and flags currently have no automatic age-based deletion from PostgreSQL. The 24-hour feed window only controls display, not storage retention.
+- Reports and flags are automatically deleted after 30 days under [`COMMUNITY_RETENTION.md`](COMMUNITY_RETENTION.md). The feed display window remains 24 hours. A Render backup may retain a previous copy for its documented recovery window after a live row is deleted.
 - The server does not expose account-based deletion because reports are anonymous. A published contact and operational process are needed for privacy requests and abuse appeals.
 - Comments can include personal details despite warnings. The operator must decide how to handle deletion requests that refer to an anonymous comment.
 - The app does not store the device IP itself, but the hosting, network, moderation, and weather providers may process request metadata under their own policies. Verify provider terms, data locations, and logs before completing Google Play Data safety declarations.

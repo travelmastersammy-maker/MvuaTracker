@@ -23,11 +23,11 @@ The proposed Render blueprint runs the API and managed PostgreSQL in Singapore. 
 
 ## Retention and deletion
 
-Local development uses JSON files; the hosted configuration uses PostgreSQL. The 24-hour feed window controls display only and does not delete records. PostgreSQL records and moderation flags currently have no automatic age-based deletion. Before release, the operator must choose and implement a retention period, backup expiry, and deletion process, then publish the actual periods here. Do not treat this draft as the final production policy.
+Local development uses JSON files; the hosted configuration uses PostgreSQL. Reports, including comments and pseudonymous reporter keys, are deleted 30 days after submission. Associated moderation flags are deleted no later than 30 days after creation and cascade away when the target report is deleted. Cleanup runs at startup and hourly; the feed itself displays reports for only 24 hours. Render recovery backups may retain a previous copy for up to the configured three-day (Hobby workspace) or seven-day (Pro or higher) point-in-time recovery window; Render retains manually created logical exports for seven days. A restore may reintroduce deleted rows, so cleanup must run again after a restore. Confirm the actual workspace backup settings and explain this backup delay in the published policy. Review [`COMMUNITY_RETENTION.md`](COMMUNITY_RETENTION.md). Do not treat this draft as the final production policy.
 
 ## User choices and requests
 
-Users choose a place manually and can submit an observation without an account. [Add how a person can request access, correction, deletion, object to processing, or make a complaint; add the response contact and process.]
+Users choose a place manually and can submit an observation without an account. The app does not yet provide self-service access, correction, or erasure. [Before publication, add a monitored privacy contact and a process for access, correction, erasure, objection, and complaints, including handling requests made before the 30-day deletion.] The operator must not claim the production policy is complete until these contact and process details are added.
 
 ## Children and safety
 
