@@ -1,4 +1,5 @@
 import java.util.Properties
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
     id("com.android.application")
@@ -13,6 +14,12 @@ val signingProperties = Properties().apply {
     if (signingPropertiesFile.exists()) signingPropertiesFile.inputStream().use { load(it) }
 }
 fun buildConfigString(value: String) = "\"${value.replace("\\", "\\\\").replace("\"", "\\\"")}\""
+
+kotlin {
+    compilerOptions {
+        jvmTarget = JvmTarget.fromTarget("17")
+    }
+}
 
 android {
     namespace = "ke.mvua.tracker"
