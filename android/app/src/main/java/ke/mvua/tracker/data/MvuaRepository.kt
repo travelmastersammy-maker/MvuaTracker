@@ -11,6 +11,8 @@ import java.net.HttpURLConnection
 import java.net.URL
 import java.net.URLEncoder
 
+const val COMMUNITY_TERMS_VERSION = "2026-10-27-v1"
+
 /** API boundary for forecasts, Kenya Met warnings, and community rain observations. */
 class MvuaRepository(private val baseUrl: String) {
     suspend fun search(query: String): List<Place> {
@@ -36,7 +38,9 @@ class MvuaRepository(private val baseUrl: String) {
         startTime: String,
         endTime: String,
         severity: String,
-        comment: String
+        comment: String,
+        reporterKey: String,
+        termsVersion: String
     ): SubmitReportResult {
         val body = JSONObject()
             .put("place", place.name)
@@ -48,11 +52,19 @@ class MvuaRepository(private val baseUrl: String) {
             .put("endTime", endTime)
             .put("severity", severity)
             .put("comment", comment.trim())
+            .put("reporterKey", reporterKey)
+            .put("termsVersion", termsVersion)
         val report = requestJson("/api/reports", "POST", body).getJSONObject("report")
         return SubmitReportResult(
             commentStatus = report.optString("commentStatus", "pending"),
             severity = report.optString("severity", severity)
         )
+    }
+
+    suspend fun flagCommunityItem(actorKey: String, targetReportId: String, targetKey: String, type: String) {
+        val body = JSONObject().put("actorKey", actorKey).put("targetReportId", targetReportId)
+            .put("targetKey", targetKey).put("type", type).put("reason", "other")
+        requestJson("/api/community/flags", "POST", body)
     }
 
     private suspend fun requestJson(path: String, method: String = "GET", body: JSONObject? = null): JSONObject =
@@ -111,6 +123,7 @@ data class OfficialAlert(
 )
 data class CommunityReport(
     val id: String,
+    val reporterKey: String,
     val place: String,
     val county: String,
     val date: String,
@@ -183,7 +196,7 @@ private fun JSONArray.toPlaces(): List<Place> = (0 until length()).map { index -
 private fun JSONArray.toReports(): List<CommunityReport> = (0 until length()).map { index ->
     val item = getJSONObject(index)
     CommunityReport(
-        item.optString("id"), item.optString("place"), item.optString("county"), item.optString("date"),
+        item.optString("id"), item.optString("reporterKey"), item.optString("place"), item.optString("county"), item.optString("date"),
         item.optString("startTime"), item.optString("endTime"), item.optString("severity"),
         item.optString("comment"), item.optString("commentStatus"), item.optString("reportedAt")
     )

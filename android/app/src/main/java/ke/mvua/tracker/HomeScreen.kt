@@ -20,6 +20,7 @@ fun HomeScreen(
     onSelectPlace: (Place) -> Unit,
     weather: WeatherSnapshot?,
     reports: List<CommunityReport>,
+    onCommunityAction: (CommunityReport, String) -> Unit,
     loading: Boolean,
     error: String,
     onRetry: () -> Unit,
@@ -48,7 +49,7 @@ fun HomeScreen(
             AlertsSection(weather.officialAlertsAvailable, weather.officialAlerts, weather.officialAlertsUpdatedAt)
         }
         Spacer(Modifier.height(18.dp))
-        CommunitySection(reports, onReport)
+        CommunitySection(reports, onReport, onCommunityAction)
         Spacer(Modifier.height(22.dp))
         Text("Forecast: Open-Meteo model guidance · Official alerts: Kenya Meteorological Department · Times shown in EAT", fontSize = 10.sp, color = Muted)
     }

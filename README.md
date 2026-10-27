@@ -17,7 +17,9 @@ MvuaTracker is a standalone Kenya-focused weather application built around rainf
 ## Project components
 
 - `public/` — responsive web client.
-- `server.js` — Node.js API, source adapters, caching, community reports, and comment screening.
+- `server.js` — Node.js API, source adapters, caching, PostgreSQL/local community storage, and comment screening.
+- `render.yaml` — Render web service and managed PostgreSQL blueprint.
+- `DATA_FLOW.md` — current API, moderation, and planned hosted data flow, including open release decisions.
 - `android/` — Kotlin and Jetpack Compose Android app and its Gradle build.
 - `.github/workflows/android-build.yml` — CI workflow that builds a debug APK and uploads it as an Actions artifact.
 - `PRIVACY_POLICY_DRAFT.md` — policy draft that still needs operator details and a public URL before release.
@@ -44,7 +46,9 @@ For community comment screening, copy `.env.example` to `.env`, set `OPENAI_API_
 node review-community-comments.js
 ```
 
-Community reports currently use local JSON storage at `data/community-reports.json`. The feed shows reports near the selected forecast location from the last 24 hours; observations can be submitted for up to seven days. This file-based store is suitable for local development, not a public production service. Public launch needs durable, access-controlled storage, retention/deletion handling, rate limiting, abuse reporting, and operational monitoring.
+Community reports use local JSON storage for development when `DATABASE_URL` is blank. When `DATABASE_URL` is set, the API stores reports and moderation flags in PostgreSQL. In production mode the API refuses to start without the database. The feed shows reports near the selected forecast location from the last 24 hours; observations can be submitted for up to seven days. A report requires acceptance of the current Community Guidelines. Per-installation random keys support attribution and deduplicated flags without accounts; blocks stay on the user's device. Three unique flags on the same update or contributor trigger automatic hiding.
+
+The Render blueprint in `render.yaml` configures the Node API and private PostgreSQL in Singapore. It injects the internal database URL as `DATABASE_URL` and keeps `OPENAI_API_KEY` as a service secret. Review the plans and charges before syncing the blueprint. The hosted schema is created automatically at service startup. Automatic retention/deletion, formal review/appeals, and migration of any existing local reports are not yet configured. Read [`DATA_FLOW.md`](DATA_FLOW.md) before deploying or completing Play declarations.
 
 ## Android app
 
@@ -64,7 +68,7 @@ GitHub Actions currently builds a **debug APK**. The latest successful build is 
 
 Rain observations are user-submitted and unverified; they must not be presented as official warnings. Comments are checked against a local phrase list and patterns for contact details or links. When configured, the server also uses automated content moderation; flagged results or service failures keep the comment hidden while the weather report can remain visible.
 
-The app does not request device GPS permission or require an account. Users choose a place manually. The privacy policy remains a draft until the operator fills in the data controller/contact, provider details, lawful basis, retention/deletion process, user-request contact, and intended audience, then publishes it at a stable HTTPS URL. Review the actual deployed data flows before completing Google Play’s Data safety declaration.
+The app does not request device GPS permission or require an account. Users choose a place manually. The privacy policy remains a draft until the operator fills in the data controller/contact, provider details, lawful basis, retention/deletion process, user-request contact, and intended audience, then publishes it at a stable HTTPS URL. The current proposed Render deployment stores community reports and moderation flags in a Singapore PostgreSQL database; it is not provisioned yet and has no automatic record-retention job. Review [`DATA_FLOW.md`](DATA_FLOW.md) and confirm the final deployed providers/data locations before completing Google Play’s Data safety declaration.
 
 ## Attribution and service terms
 

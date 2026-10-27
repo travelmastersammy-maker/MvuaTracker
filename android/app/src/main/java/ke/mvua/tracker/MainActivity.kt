@@ -41,6 +41,10 @@ class MainActivity : ComponentActivity() {
 @Composable
 private fun MvuaTrackerApp(repository: MvuaRepository) {
     val scope = rememberCoroutineScope()
+    val context = LocalContext.current
+    val communityPrefs = remember { context.getSharedPreferences("mvua-community", android.content.Context.MODE_PRIVATE) }
+    val reporterKey = remember { communityPrefs.getString("reporter_key", null) ?: java.util.UUID.randomUUID().toString().also { communityPrefs.edit().putString("reporter_key", it).apply() } }
+    val blockedKeys = remember { mutableStateOf(communityPrefs.getStringSet("blocked_reporters", mutableSetOf<String>())?.toSet() ?: emptySet()) }
     var place by remember { mutableStateOf(Place("Nairobi", "Nairobi County", -1.2864, 36.8172, "Africa/Nairobi")) }
     var weather by remember { mutableStateOf<WeatherSnapshot?>(null) }
     var reports by remember { mutableStateOf<List<CommunityReport>>(emptyList()) }
@@ -58,7 +62,7 @@ private fun MvuaTrackerApp(repository: MvuaRepository) {
         error = ""
         try {
             weather = repository.weather(target)
-            reports = repository.reports(target)
+            reports = repository.reports(target).filterNot { it.reporterKey in blockedKeys.value }
         } catch (e: Exception) {
             error = e.message ?: "Could not reach the MvuaTracker service. Check your connection and retry."
         } finally { loading = false }
@@ -87,7 +91,19 @@ private fun MvuaTrackerApp(repository: MvuaRepository) {
                                 finally { searching = false }
                             }
                         }, onSelectPlace = { place = it; query = ""; results = emptyList(); status = "" },
-                        weather = weather, reports = reports, loading = loading, error = error,
+                        weather = weather, reports = reports, onCommunityAction = { report, action ->
+                            if (action == "block") {
+                                val updated = blockedKeys.value + report.reporterKey
+                                blockedKeys.value = updated
+                                communityPrefs.edit().putStringSet("blocked_reporters", updated).apply()
+                                reports = reports.filterNot { it.reporterKey == report.reporterKey }
+                                status = "This contributor's updates are now hidden on this device."
+                            } else scope.launch {
+                                runCatching { repository.flagCommunityItem(reporterKey, report.id, report.reporterKey, action) }
+                                    .onSuccess { status = "Thanks. Your report was sent for review." }
+                                    .onFailure { status = it.message ?: "Could not send the report." }
+                            }
+                        }, loading = loading, error = error,
                         onRetry = { scope.launch { refresh(place) } }, onReport = { showReport = true },
                         onPrivacy = { showPrivacy = true }, statusMessage = status
                     )

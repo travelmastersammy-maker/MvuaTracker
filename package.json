@@ -1,0 +1,15 @@
+{
+  "name": "mvuatracker",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Kenya rainfall and community weather reports API",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "pg": "^8.16.3"
+  }
+}

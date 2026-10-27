@@ -48,13 +48,13 @@ private fun AlertCard(alert: OfficialAlert, onOpen: () -> Unit) {
 }
 
 @Composable
-fun CommunitySection(reports: List<CommunityReport>, onReport: () -> Unit) {
+fun CommunitySection(reports: List<CommunityReport>, onReport: () -> Unit, onCommunityAction: (CommunityReport, String) -> Unit) {
     Column {
         Text("Live updates from users", fontSize = 18.sp, fontWeight = FontWeight.ExtraBold, color = Ink)
         Text("Nearby · last 24 hours", fontSize = 11.sp, color = Muted)
         Text("Shared by users and unverified. These are not Kenya Met alerts.", fontSize = 11.sp, color = Muted, modifier = Modifier.padding(top = 5.dp, bottom = 9.dp))
         if (reports.isEmpty()) InfoCard("No recent reports nearby. Share what you are seeing.", false) { }
-        reports.forEach { CommunityReportCard(it) }
+        reports.forEach { CommunityReportCard(it, onCommunityAction) }
         Button(onClick = onReport, modifier = Modifier.fillMaxWidth().padding(top = 6.dp), colors = ButtonDefaults.buttonColors(containerColor = Olive), shape = RoundedCornerShape(15.dp)) {
             Text("＋  Is it raining where you are?", fontWeight = FontWeight.Bold, modifier = Modifier.padding(vertical = 4.dp))
         }
@@ -62,7 +62,7 @@ fun CommunitySection(reports: List<CommunityReport>, onReport: () -> Unit) {
 }
 
 @Composable
-private fun CommunityReportCard(report: CommunityReport) {
+private fun CommunityReportCard(report: CommunityReport, onCommunityAction: (CommunityReport, String) -> Unit) {
     Card(Modifier.fillMaxWidth().padding(bottom = 7.dp), colors = CardDefaults.cardColors(containerColor = SurfaceCream), shape = RoundedCornerShape(16.dp)) {
         Column(Modifier.padding(13.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
@@ -72,6 +72,11 @@ private fun CommunityReportCard(report: CommunityReport) {
             Text("${report.place}${if (report.county.isNotBlank()) ", ${report.county}" else ""} · ${dayLabel(report.date)} · ${report.startTime}–${report.endTime} EAT", fontSize = 10.sp, color = Muted, modifier = Modifier.padding(top = 4.dp))
             if (report.comment.isNotBlank()) Text(report.comment, color = Ink, fontSize = 12.sp, modifier = Modifier.padding(top = 7.dp))
             if (report.commentStatus == "pending") Text("Comment withheld pending safety review", color = AlertRed, fontSize = 10.sp, modifier = Modifier.padding(top = 5.dp))
+            Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                TextButton(onClick = { onCommunityAction(report, "content") }, contentPadding = PaddingValues(horizontal = 5.dp)) { Text("Report update", fontSize = 10.sp) }
+                TextButton(onClick = { onCommunityAction(report, "user") }, contentPadding = PaddingValues(horizontal = 5.dp)) { Text("Report contributor", fontSize = 10.sp) }
+                TextButton(onClick = { onCommunityAction(report, "block") }, contentPadding = PaddingValues(horizontal = 5.dp)) { Text("Block", fontSize = 10.sp) }
+            }
         }
     }
 }
