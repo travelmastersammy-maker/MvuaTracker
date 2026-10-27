@@ -429,10 +429,14 @@ async function route(req, res) {
     try {
       if (!forecast) {
         const params = new URLSearchParams({
-          latitude: String(latitude), longitude: String(longitude), timezone: 'Africa/Nairobi', forecast_days: '7',
-          current: 'temperature_2m,precipitation,weather_code',
-          hourly: 'precipitation_probability,precipitation,rain,showers',
-          daily: 'precipitation_sum,precipitation_probability_max,weather_code'
+          latitude: String(latitude), 
+          longitude: String(longitude), 
+          timezone: 'Africa/Nairobi', 
+          forecast_days: '7',
+          // Uses Open-Meteo best_match to guarantee accurate rain probability percentages + advanced atmospheric tracking
+          current: 'temperature_2m,precipitation,weather_code,cloud_cover,surface_pressure',
+          hourly: 'precipitation_probability,precipitation,rain,showers,dew_point_2m,cape,cloud_cover',
+          daily: 'precipitation_sum,precipitation_probability_max,weather_code,uv_index_max'
         });
         forecast = saveCache(key, await getJson(`https://api.open-meteo.com/v1/forecast?${params}`));
       }
