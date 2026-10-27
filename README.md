@@ -39,3 +39,11 @@ Comments are screened before publication. The server first checks the local phra
 Add locally relevant English, Kiswahili, and Sheng phrases to `moderation-blocklist.txt`, one phrase per line. Pending comments can be reviewed asynchronously with `node review-community-comments.js`; stop the server first so review writes do not race with new submissions. The review tool approves or rejects each comment while preserving the underlying unverified rain report.
 
 For automated screening, copy `.env.example` to `.env` in this project folder and set `OPENAI_API_KEY` there. Restart the server after adding or changing the key. The server re-screens previously held comments at startup and publishes only those that pass. Never put the key in the browser or Android app. The moderation endpoint returns category flags/scores for application policy; keep reviewing false positives and adjust the local list as needed. See the [OpenAI Moderation guide](https://developers.openai.com/api/docs/guides/moderation).
+
+## Native Android app
+
+The `android/` directory contains the native Kotlin/Jetpack Compose Android client. It includes the olive/savannah dashboard, Kenya place search, rainfall forecasts and time/date filters, KMD alert cards, unverified community updates, report submission, and an in-app privacy notice. It connects to the existing Node API through the same `/api/search`, `/api/weather`, and `/api/reports` endpoints.
+
+For emulator development, the debug variant points to `http://10.0.2.2:4174`; start the API from this project root with `node server.js`. Release builds require an HTTPS deployment, public privacy policy URL, and locally stored signing credentials. See [`android/PLAY_RELEASE_CHECKLIST.md`](android/PLAY_RELEASE_CHECKLIST.md) and [`PRIVACY_POLICY_DRAFT.md`](PRIVACY_POLICY_DRAFT.md). The privacy policy is intentionally marked as a draft and must be completed and published before submitting to Google Play.
+
+This environment did not have Java, Gradle, or the Android SDK available at the time this project was prepared, so a native APK/AAB build has not been verified here.

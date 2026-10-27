@@ -11,3 +11,6 @@ data/community-reports.json.tmp
 .gradle/
 **/build/
 local.properties
+android/keystore.properties
+android/*.jks
+android/*.keystore

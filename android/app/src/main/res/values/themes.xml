@@ -1,0 +1,10 @@
+<resources>
+    <style name="Theme.MvuaTracker" parent="android:style/Theme.Material.Light.NoActionBar">
+        <item name="android:fontFamily">sans</item>
+        <item name="android:colorAccent">#596B35</item>
+        <item name="android:statusBarColor">#F3F2E6</item>
+        <item name="android:navigationBarColor">#F3F2E6</item>
+        <item name="android:windowLightStatusBar">true</item>
+        <item name="android:windowActionModeOverlay">true</item>
+    </style>
+</resources>

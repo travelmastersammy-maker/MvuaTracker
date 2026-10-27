@@ -1,0 +1,1 @@
+# Keep Android framework entry points; R8's standard Android rules cover Compose.
