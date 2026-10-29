@@ -1,3 +1,4 @@
+async function main() {
 const fs = require('node:fs');
 const path = require('node:path');
 const readline = require('node:readline/promises');
@@ -34,3 +35,10 @@ try {
   fs.writeFileSync(temp, JSON.stringify(reports.slice(-5000)), 'utf8');
   fs.renameSync(temp, file);
 } finally { rl.close(); }
+
+}
+
+main().catch(error => {
+  console.error(JSON.stringify({ type: 'review_tool_error', message: error.message }));
+  process.exitCode = 1;
+});
