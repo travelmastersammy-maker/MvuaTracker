@@ -17,7 +17,10 @@ MvuaTracker is a standalone Kenya-focused weather application built around rainf
 ## Project components
 
 - `public/` — responsive web client.
-- `server.js` — Node.js API, source adapters, caching, PostgreSQL/local community storage, and comment screening.
+- `server.js` — HTTP API and source adapters.
+- `lib/alerts.js` — CAP parsing and location-aware KMD alert matching.
+- `lib/reports.js` — community report validation, storage, retention, and feed filtering.
+- `lib/moderation.js` — local screening and optional automated comment moderation.
 - `render.yaml` — Render web service and managed PostgreSQL blueprint.
 - `DATA_FLOW.md` — current API, moderation, and planned hosted data flow, including open release decisions.
 - `android/` — Kotlin and Jetpack Compose Android app and its Gradle build.
@@ -32,10 +35,13 @@ Alert-to-town matching currently uses place, county, and named KMD region text, 
 
 ## Run the web app and API locally
 
-Requires Node.js 18 or newer. From the repository root:
+Requires Node.js 20.19 or newer. From a fresh clone, run these commands in the repository root:
 
 ```powershell
-node server.js
+npm ci
+npm test
+npm run lint
+npm start
 ```
 
 Open `http://localhost:4173`. The server exposes `/api/search`, `/api/weather`, and `/api/reports`. It caches geocoding for an hour, forecasts for 15 minutes, and KMD alerts for 5 minutes.
@@ -56,7 +62,7 @@ The native Android client is in `android/`. It uses the same API for location se
 
 Open the `android/` directory in Android Studio to sync and run the app. The debug build defaults to `http://10.0.2.2:4174` for an Android emulator. To run the local API on that port, use `$env:PORT = "4174"` and then `node server.js` in PowerShell. A physical device needs an API address reachable over the local network. Debug builds allow cleartext only to support local development; release builds require HTTPS.
 
-GitHub Actions currently builds a **debug APK**. The latest successful build is [run #40454946566](https://github.com/travelmastersammy-maker/MvuaTracker/actions/runs/40454946566); download its `mvuatracker-debug-apk` artifact to install and test. This APK is for testing and is not a Play Store release bundle.
+GitHub Actions runs the Node.js test and lint checks on pushes and pull requests. The Android workflow currently builds a **debug APK**. The latest successful build is [run #40454946566](https://github.com/travelmastersammy-maker/MvuaTracker/actions/runs/40454946566); download its `mvuatracker-debug-apk` artifact to install and test. This APK is for testing and is not a Play Store release bundle.
 
 ## Current release status
 
@@ -68,7 +74,7 @@ GitHub Actions currently builds a **debug APK**. The latest successful build is 
 
 Rain observations are user-submitted and unverified; they must not be presented as official warnings. Comments are checked against a local phrase list and patterns for contact details or links. When configured, the server also uses automated content moderation; flagged results or service failures keep the comment hidden while the weather report can remain visible.
 
-The app does not request device GPS permission or require an account. Users choose a place manually. The privacy policy remains a draft until the operator fills in the data controller/contact, provider details, lawful basis, retention/deletion process, user-request contact, and intended audience, then publishes it at a stable HTTPS URL. The current proposed Render deployment stores community reports and moderation flags in a Singapore PostgreSQL database; it is not provisioned yet and has no automatic record-retention job. Review [`DATA_FLOW.md`](DATA_FLOW.md) and confirm the final deployed providers/data locations before completing Google Play’s Data safety declaration.
+The app does not request device GPS permission or require an account. Users choose a place manually. The privacy policy remains a draft until the operator fills in the data controller/contact, provider details, lawful basis, retention/deletion process, user-request contact, and intended audience, then publishes it at a stable HTTPS URL. The current proposed Render deployment stores community reports and moderation flags in a Singapore PostgreSQL database; it is not provisioned yet. Review [`DATA_FLOW.md`](DATA_FLOW.md) and confirm the final deployed providers/data locations before completing Google Play’s Data safety declaration.
 
 ## Attribution and service terms
 

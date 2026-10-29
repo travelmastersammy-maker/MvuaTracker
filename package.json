@@ -4,14 +4,20 @@
   "private": true,
   "description": "Kenya rainfall and community weather reports API",
   "engines": {
-    "node": ">=20"
+    "node": ">=20.19.0"
   },
   "scripts": {
-    "test": "node test.js",
-    "start": "node server.js"
+    "test": "node --test",
+    "start": "node server.js",
+    "lint": "eslint server.js test.js review-community-comments.js \"lib/**/*.js\" \"tests/**/*.js\" \"utils/**/*.js\""
   },
   "dependencies": {
     "express": "^5.3.0",
     "pg": "^8.16.3"
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "eslint": "^10.13.0",
+    "globals": "^17.13.0"
   }
 }
