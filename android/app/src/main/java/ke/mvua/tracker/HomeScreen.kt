@@ -51,6 +51,6 @@ fun HomeScreen(
         Spacer(Modifier.height(18.dp))
         CommunitySection(reports, onReport, onCommunityAction)
         Spacer(Modifier.height(22.dp))
-        Text("Forecast: Open-Meteo model guidance · Official alerts: Kenya Meteorological Department · Times shown in EAT", fontSize = 10.sp, color = Muted)
+        Text("Rain chances are adjusted using forecast rainfall and capped at 95%; only a matched active KMD thunderstorm warning can raise a wet period to 100%. Percentages are guidance, not a guarantee. Open-Meteo model guidance · KMD official alerts · Times shown in EAT", fontSize = 10.sp, color = Muted)
     }
 }

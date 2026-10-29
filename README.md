@@ -7,7 +7,7 @@ MvuaTracker is a standalone Kenya-focused weather application built around rainf
 ## What it does
 
 - Search Kenyan towns and counties.
-- View hourly rain probability and rainfall amounts, plus a seven-day outlook with date and time filters.
+- View rainfall-aware hourly estimates and amounts, plus a seven-day outlook with date and time filters.
 - Read Kenya Meteorological Department (KMD) weather alerts matched to the selected location.
 - Submit community rain observations with a place, observation date and time, severity, and optional comment.
 - View recent nearby community reports, clearly labelled as unverified.
@@ -26,7 +26,7 @@ MvuaTracker is a standalone Kenya-focused weather application built around rainf
 
 ## Weather data and limitations
 
-Place search and forecast data use Open-Meteo with an optimized forecast model blend tailored for Kenya's equatorial micro-climates. Forecasts provide hourly rainfall probability, millimetres, and key atmospheric indicators—including CAPE (Convective Available Potential Energy), dew point, cloud cover, and surface pressure—to accurately predict sudden tropical convective downpours. Daily rainfall totals and official warnings sourced from the KMD CAP/RSS feed are presented alongside model forecasts and community posts.
+Place search and forecast data use Open-Meteo. The API returns hourly rain amounts with a rainfall-aware percentage calculated from the corresponding forecast amount. Daily percentages use the greater of the day's peak hourly amount and its total divided by 24. Light amounts lower the underlying model chance, and ordinary estimates are capped at 95%; a location-matched active KMD thunderstorm warning can allow 100% for a period with forecast rain. Original model probabilities remain in the API response. This transparent heuristic is not statistically validated, and forecasts are guidance rather than a guarantee that rain will occur at every point in a town. Daily totals, official KMD warnings, and community observations are presented separately.
 
 Alert-to-town matching currently uses place, county, and named KMD region text, with alert expiry and stated dates considered. It is not polygon-based, so it may not precisely identify every affected area. A KMD feed failure is shown as unavailable rather than as an absence of warnings. Open-Meteo model values are guidance, not official KMD forecasts; source links and attribution should remain visible.
 
@@ -73,3 +73,7 @@ The app does not request device GPS permission or require an account. Users choo
 ## Attribution and service terms
 
 Keep Open-Meteo attribution in the app and review its current terms before commercial use. Coordinate broader KMD data reuse with KMD. Provider terms and data handling should be reviewed again before public launch.
+
+## Rain probability calibration
+
+The server scales Open-Meteo's probability according to forecast rainfall: 0% for 0.1 mm or less, then 10% of the source value above 0.1 through 0.5 mm, 20% above 0.5 through 1 mm, 30% above 1 through 2 mm, 50% above 2 through 5 mm, 75% above 5 through 10 mm, and 100% above 10 mm. The adjusted percentage is capped at 95% except for a period with nonzero forecast rain covered by a location-matched active KMD thunderstorm warning. When an amount is missing, the source percentage is retained up to 95%. The API also returns the original values in `precipitation_probability_raw` and `precipitation_probability_max_raw`. These thresholds are a transparent product heuristic, not a statistically validated probability model; compare them with observed rainfall and tune them before treating them as calibrated meteorology.

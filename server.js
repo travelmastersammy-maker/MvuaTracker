@@ -1,4 +1,5 @@
 const { resolveWeatherLocation } = require('./utils/locations');
+const { calibrateForecastProbabilities, isOfficialThunderstormWarning } = require('./utils/rain-probability');
 const http = require('node:http');
 const fs = require('node:fs');
 const path = require('node:path');
@@ -444,9 +445,17 @@ async function route(req, res) {
       let warnings;
       try { warnings = await getKmdAlerts(place, county); }
       catch (error) { warnings = { status: 'unavailable', source: 'Kenya Meteorological Department', sourceUrl: 'https://meteo.go.ke/weather-warnings/', fetchedAt: new Date().toISOString(), error: error.message, alerts: [] }; }
+      const officialThunderstormWarning = warnings.status === 'ok'
+        && warnings.alerts.some(isOfficialThunderstormWarning);
+      const displayForecast = {
+        ...forecast,
+        hourly: forecast.hourly ? { ...forecast.hourly } : forecast.hourly,
+        daily: forecast.daily ? { ...forecast.daily } : forecast.daily
+      };
+      calibrateForecastProbabilities(displayForecast, officialThunderstormWarning);
       return send(res, 200, {
         location: { name: place, county, latitude, longitude, timezone: forecast.timezone || 'Africa/Nairobi' },
-        forecast: { current: forecast.current, hourly: forecast.hourly, daily: forecast.daily, fetchedAt: new Date().toISOString(), source: 'Open-Meteo · forecast model blend', sourceUrl: 'https://open-meteo.com/en/docs' },
+        forecast: { current: forecast.current, hourly: displayForecast.hourly, daily: displayForecast.daily, fetchedAt: new Date().toISOString(), source: 'Open-Meteo · rainfall-aware estimate', sourceUrl: 'https://open-meteo.com/en/docs', probabilityMethod: 'Rain probability is reduced according to forecast rainfall amount; estimates are capped at 95% unless a location-matched active KMD thunderstorm warning applies to a forecast period with rain.' },
         warnings
       });
     } catch (error) { return send(res, 502, { error: `Forecast is unavailable: ${error.message}` }); }

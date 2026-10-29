@@ -6,7 +6,8 @@ This describes the current code path and the planned Render deployment. The Rend
 
 1. The web or Android client sends a manually selected Kenyan place and coordinates to the MvuaTracker Node API over HTTPS in production.
 2. The API requests forecast data from Open-Meteo and warning data from the Kenya Meteorological Department (KMD). It caches forecasts for 15 minutes, geocoding for one hour, and KMD alerts for five minutes.
-3. The API returns normalized results to the client. The app does not request device GPS permission.
+3. Before returning the forecast, the API adjusts Open-Meteo's rain probability using the forecast amount for each hour and day. For hourly amounts, multipliers are 0% at or below 0.1 mm, 10% above 0.1 through 0.5 mm, 20% above 0.5 through 1 mm, 30% above 1 through 2 mm, 50% above 2 through 5 mm, 75% above 5 through 10 mm, and 100% above 10 mm. The ordinary result is capped at 95%. Daily values use the larger of the day's peak hourly amount and its daily total divided by 24. A location-matched active KMD thunderstorm warning can raise a period with forecast rain to 100%. Original model probabilities are retained in `precipitation_probability_raw` and `precipitation_probability_max_raw`. This deterministic heuristic is not statistically validated and is described in the app as guidance.
+4. The API returns the same adjusted values to web and Android clients. The app does not request device GPS permission.
 
 ## Community reports and moderation
 
