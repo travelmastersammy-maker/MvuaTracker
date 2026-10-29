@@ -35,7 +35,7 @@ Alert-to-town matching currently uses place, county, and named KMD region text, 
 
 ## Run the web app and API locally
 
-Requires Node.js 20.19 or newer. From a fresh clone, run these commands in the repository root:
+Requires Node.js 24 or newer. From a fresh clone, run these commands in the repository root:
 
 ```powershell
 npm ci

@@ -4,7 +4,7 @@
   "private": true,
   "description": "Kenya rainfall and community weather reports API",
   "engines": {
-    "node": ">=20.19.0"
+    "node": ">=24.0.0"
   },
   "scripts": {
     "test": "node --test",
