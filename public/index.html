@@ -71,16 +71,6 @@
   <div class="community-map-detail" id="community-map-detail" aria-live="polite">Select a dot to see the reported place, time, and severity.</div>
   <div class="community-map-attribution">County boundaries: <a href="https://www.geoboundaries.org/api/current/gbOpen/KEN/ADM1/" target="_blank" rel="noreferrer">geoBoundaries Kenya ADM1</a> (47 counties; public-domain data sourced from RCMRD GeoPortal / Africa GeoPortal).</div>
 </section>
-<div class="section"><h2>Rain reports across Kenya</h2><span class="meta">Last 24 hours · unverified</span></div>
-<div class="community-note">Map dots show recent community reports, not official observations. Locations are rounded to protect privacy. Tap a county or choose one below.</div>
-<section class="community-map-card" aria-label="Community rain reports map">
-  <div class="community-map-controls"><label for="community-map-area">Map area<select id="community-map-area" aria-label="Choose Kenya or a county"><option value="Kenya">All Kenya</option></select></label><button type="button" class="community-map-reset" id="community-map-reset" hidden>Show all Kenya</button></div>
-  <div class="community-map-status" id="community-map-status" role="status" aria-live="polite">Loading county map and recent reports…</div>
-  <div class="community-map-frame"><svg id="community-map-svg" class="community-map-svg" viewBox="0 0 500 600" role="img" aria-label="Map of Kenya counties and recent user rain reports"></svg></div>
-  <div class="map-legend" aria-label="Rain report dot legend"><span><i class="legend-dot" aria-hidden="true"></i>Light rain</span><span><i class="legend-dot medium" aria-hidden="true"></i>Medium rain</span><span><i class="legend-dot heavy" aria-hidden="true"></i>Heavy rain or storm</span><span><i class="legend-dot dry" aria-hidden="true"></i>No rain</span></div>
-  <div class="community-map-detail" id="community-map-detail" aria-live="polite">Select a dot to see the reported place, time, and severity.</div>
-  <div class="community-map-attribution">County boundaries: <a href="https://www.geoboundaries.org/api/current/gbOpen/KEN/ADM1/" target="_blank" rel="noreferrer">geoBoundaries Kenya ADM1</a> (47 counties; public-domain data sourced from RCMRD GeoPortal / Africa GeoPortal).</div>
-</section>
 <button class="report-cta" id="open-report" type="button">Is it raining where you are?</button>
 
 <footer class="sourcefoot"><div><strong>Forecast:</strong> <a href="https://open-meteo.com/en/docs" target="_blank" rel="noreferrer">Open-Meteo</a> model blend · geocoding based on GeoNames.</div><div style="margin-top:4px"><strong>Official warnings:</strong> <a href="https://meteo.go.ke/weather-warnings/" target="_blank" rel="noreferrer">Kenya Meteorological Department</a> CAP feed.</div><div style="margin-top:4px">Rain chances are adjusted using forecast rainfall and capped at 95%. A matched active KMD thunderstorm warning may raise a wet forecast period to 100%. Percentages are guidance, not a guarantee that every person nearby will experience rain.</div><div style="margin-top:4px">Refresh time is shown on each source.</div></footer><div class="footer">Live data · rain units in millimetres · times shown in Kenya time</div></div>
@@ -265,7 +255,7 @@ $('report-form').addEventListener('submit',async event=>{
   try {
     const response=await fetch('/api/reports',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify(payload)}),body=await response.json();
     if(!response.ok)throw new Error(body.error||'Could not share report.');
-    showHomePage();await loadLocation(reportPlace);
+    showHomePage();await loadLocation(reportPlace);await loadCommunityMap();
     $('community-count').textContent='Your report · unverified';
     $('community-status').textContent=body.report.commentStatus==='pending'?'The rain report is live; its comment is hidden pending safety review.':'The report is live. Any comment passed automatic screening; the weather report remains unverified.';
     document.getElementById('community-feed').scrollIntoView({behavior:'smooth',block:'center'});
@@ -274,7 +264,6 @@ $('report-form').addEventListener('submit',async event=>{
 });
 
 setInterval(()=>{if(selected&&!document.hidden)loadCommunityReports(selected)},60_000);
-setInterval(()=>{if(!document.hidden)loadCommunityMap()},60_000);
 setInterval(()=>{if(!document.hidden)loadCommunityMap()},60_000);
 async function searchLocations(query) {
   const r=await fetch(`/api/search?q=${encodeURIComponent(query)}`);const body=await r.json();if(!r.ok)throw new Error(body.error||'Search failed');return body.locations||[];
