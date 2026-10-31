@@ -112,7 +112,7 @@ fun CommunityMapSection(reports: List<MapCommunityReport>, reportsError: String)
         ) {
             fun screenPoint(point: MapCoordinate): Offset {
                 val projected = mapProject(point.longitude, point.latitude)
-                return Offset((projected.first - viewBox.x) / viewBox.width * size.width, (projected.second - viewBox.y) / viewBox.height * size.height)
+                return Offset(((projected.first - viewBox.x) / viewBox.width * size.width).toFloat(), ((projected.second - viewBox.y) / viewBox.height * size.height).toFloat())
             }
             counties.forEach { shape ->
                 shape.polygons.forEach { polygon ->
