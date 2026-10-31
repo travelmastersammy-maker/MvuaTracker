@@ -1,6 +1,6 @@
 const { calibrateForecastProbabilities, isOfficialThunderstormWarning } = require('./utils/rain-probability');
 const { alertAffectsLocation, inferredExpiry, xmlValue, stripMarkup, decodeXml } = require('./lib/alerts');
-const { createCommunityStore, validateCommunityReport, filterCommunityReports } = require('./lib/reports');
+const { createCommunityStore, validateCommunityReport, filterCommunityReports, filterMapCommunityReports } = require('./lib/reports');
 const { createModerator } = require('./lib/moderation');
 const http = require('node:http');
 const fs = require('node:fs');
@@ -30,7 +30,7 @@ const TTL = { forecast: 15 * 60 * 1000, alerts: 5 * 60 * 1000, search: 60 * 60 *
 const REPORT_DIR = process.env.MVUA_DATA_DIR || path.join(__dirname, 'data');
 const REPORT_FILE = path.join(REPORT_DIR, 'community-reports.json');
 const COMMUNITY_FLAGS_FILE = path.join(REPORT_DIR, 'community-flags.json');
-const COMMUNITY_TERMS_VERSION = '2026-10-27-v1';
+const COMMUNITY_TERMS_VERSION = '2026-10-31-v1';
 const MODERATION_BLOCKLIST_FILE = process.env.MVUA_MODERATION_BLOCKLIST || path.join(__dirname, 'moderation-blocklist.txt');
 const REPORT_MAX_AGE = 24 * 60 * 60 * 1000;
 const REPORT_RETENTION_DAYS = 30;
@@ -133,6 +133,9 @@ async function createCommunityReport(req, res) {
 async function getCommunityReports(latitude, longitude) {
   return filterCommunityReports(await loadCommunityReports(), latitude, longitude, { maxAgeMs: REPORT_MAX_AGE, radiusKm: REPORT_RADIUS_KM });
 }
+async function getMapCommunityReports() {
+  return filterMapCommunityReports(await loadCommunityReports(), { maxAgeMs: REPORT_MAX_AGE });
+}
 
 async function route(req, res) {
   const url = new URL(req.url, `http://${req.headers.host || 'localhost'}`);
@@ -187,6 +190,9 @@ async function route(req, res) {
     const latitude = Number(url.searchParams.get('latitude')), longitude = Number(url.searchParams.get('longitude'));
     if (!Number.isFinite(latitude) || !Number.isFinite(longitude) || latitude < -5.5 || latitude > 5.5 || longitude < 33.5 || longitude > 42.5) return send(res, 400, { error: 'A valid Kenyan location is required.' });
     return send(res, 200, { reports: await getCommunityReports(latitude, longitude), fetchedAt: new Date().toISOString(), radiusKm: REPORT_RADIUS_KM, maxAgeHours: 24 });
+  }
+  if (url.pathname === '/api/community/map' && req.method === 'GET') {
+    return send(res, 200, { reports: await getMapCommunityReports(), fetchedAt: new Date().toISOString(), maxAgeHours: 24, coordinatePrecision: 'approximately 1 km' });
   }
   if (req.method !== 'GET') return send(res, 405, { error: 'Use GET for this endpoint.' });
   if (url.pathname === '/api/search') {

@@ -1,29 +1,31 @@
-# MvuaTracker Architecture & Data Moat
+# MvuaTracker Architecture
 
-## Overview
-MvuaTracker is a high-precision meteorological intelligence and atmospheric model-blending platform engineered specifically to solve localized microclimate forecasting challenges in East Africa. Standard global weather models often fail to capture localized topography and convective rainfall patterns; MvuaTracker bridges this gap through multi-model ensemble blending and localized data assimilation.
+MvuaTracker is a Kenya-focused rainfall app. This document describes the implemented system; it does not claim a proprietary forecast model, sensor network, or machine-learning pipeline.
 
----
+## Applications and API
 
-## Data Pipeline & Architecture
+- `public/index.html` is the responsive web client served by `server.js`.
+- `android/` contains the Kotlin and Jetpack Compose client.
+- The Node API normalizes place search, Open-Meteo forecasts, Kenya Meteorological Department alerts, and community reports for both clients.
+- `lib/alerts.js`, `lib/reports.js`, and `lib/moderation.js` hold alert matching, community storage/validation, and comment screening.
 
-\\\
-[ Global NWP Models (GFS / ECMWF) ] --+
-                                     ¦
-[ Regional Sensor & Station Feeds ] --+--> [ MvuaTracker Blending Engine ] --> [ REST API / Web Dashboard ]
-                                     ¦         (Dynamic Weighting)
-[ Satellite Precipitation Data ]  ---+
-\\\
+## Community reports and map
 
-### 1. Ingestion Layer
-* **Numerical Weather Prediction (NWP) Feeds**: Pulls raw forecast grids (temperature, pressure, wind vectors, convective available potential energy).
-* **Ground Station & IoT Telemetry**: Integrates localized rain-gauge and weather station telemetry to correct baseline model biases.
-* **Satellite Observations**: Infrared and microwave satellite imagery streams for real-time cloud-cover tracking.
+- Reports are manually associated with a searched Kenyan place, observed time range, and selected rain severity.
+- The nearby feed uses the selected forecast coordinates and a 30 km radius. Active observations are shown for up to 24 hours; records are retained for up to 30 days for moderation.
+- `GET /api/community/map` returns active observations across Kenya with rounded coordinates. It excludes comments, reporter keys, and moderation details.
+- The web SVG map and Android Compose map both use `public/kenya-counties.geojson` (also packaged as an Android asset) for county boundaries. County polygons can be selected; report dot colour and size encode user-reported severity.
+- County boundary source: geoBoundaries Kenya ADM1, 47 counties, public-domain dataset sourced from RCMRD GeoPortal / Africa GeoPortal. Attribution appears in both clients.
 
-### 2. The Blending Engine
-Standard systems rely on a single forecast source. MvuaTracker runs a proprietary **Dynamic Weighting Algorithm** that adjusts the influence of global models (e.g., GFS vs. ECMWF) based on historical regional accuracy, topography, and seasonal wind patterns.
+## Forecast inputs and limits
 
-### 3. The Data Moat
-Global weather giants do not optimize for hyper-local East African microclimates. MvuaTracker's moat lies in:
-* **Localized Bias Correction**: Training regression models on ground-truth sensor networks across varied topography.
-* **Agricultural & Infrastructure Use-Cases**: Translating raw precipitation forecasts into actionable flood risk and crop-yield intelligence.
+- Open-Meteo provides the place search and forecast inputs. Kenya Meteorological Department provides official warning data.
+- The server applies the documented rainfall-aware percentage heuristic to Open-Meteo probabilities. This is a product heuristic and has not been statistically validated.
+- Community reports are unverified and are kept separate from official warnings and model forecasts.
+
+## Storage, checks, and deployment
+
+- Development uses local JSON files; production requires PostgreSQL through `DATABASE_URL`.
+- `npm test` runs the Node test suite and `npm run lint` checks the server and JavaScript modules.
+- GitHub Actions builds a debug Android APK. The app still requires production hosting, operator-completed privacy documents, signing, and Play Console setup before release.
+- See `DATA_FLOW.md`, `COMMUNITY_RETENTION.md`, `PRIVACY_POLICY_DRAFT.md`, and `android/PLAY_RELEASE_CHECKLIST.md` for operational details and remaining release work.

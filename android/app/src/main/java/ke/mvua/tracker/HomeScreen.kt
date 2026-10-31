@@ -20,6 +20,8 @@ fun HomeScreen(
     onSelectPlace: (Place) -> Unit,
     weather: WeatherSnapshot?,
     reports: List<CommunityReport>,
+    mapReports: List<MapCommunityReport>,
+    mapError: String,
     onCommunityAction: (CommunityReport, String) -> Unit,
     loading: Boolean,
     error: String,
@@ -49,7 +51,7 @@ fun HomeScreen(
             AlertsSection(weather.officialAlertsAvailable, weather.officialAlerts, weather.officialAlertsUpdatedAt)
         }
         Spacer(Modifier.height(18.dp))
-        CommunitySection(reports, onReport, onCommunityAction)
+        CommunitySection(reports, mapReports, mapError, onReport, onCommunityAction)
         Spacer(Modifier.height(22.dp))
         Text("Rain chances are adjusted using forecast rainfall and capped at 95%; only a matched active KMD thunderstorm warning can raise a wet period to 100%. Percentages are guidance, not a guarantee. Open-Meteo model guidance · KMD official alerts · Times shown in EAT", fontSize = 10.sp, color = Muted)
     }

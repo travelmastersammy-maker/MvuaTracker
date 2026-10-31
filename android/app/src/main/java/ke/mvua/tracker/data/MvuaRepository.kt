@@ -11,7 +11,7 @@ import java.net.HttpURLConnection
 import java.net.URL
 import java.net.URLEncoder
 
-const val COMMUNITY_TERMS_VERSION = "2026-10-27-v1"
+const val COMMUNITY_TERMS_VERSION = "2026-10-31-v1"
 
 /** API boundary for forecasts, Kenya Met warnings, and community rain observations. */
 class MvuaRepository(private val baseUrl: String) {
@@ -30,6 +30,11 @@ class MvuaRepository(private val baseUrl: String) {
         val query = "latitude=${place.latitude}&longitude=${place.longitude}"
         val root = requestJson("/api/reports?$query")
         return (root.optJSONArray("reports") ?: JSONArray()).toReports()
+    }
+
+    suspend fun mapReports(): List<MapCommunityReport> {
+        val root = requestJson("/api/community/map")
+        return (root.optJSONArray("reports") ?: JSONArray()).toMapReports()
     }
 
     suspend fun submitReport(
@@ -134,6 +139,17 @@ data class CommunityReport(
     val commentStatus: String,
     val reportedAt: String
 )
+data class MapCommunityReport(
+    val id: String,
+    val place: String,
+    val county: String,
+    val latitude: Double,
+    val longitude: Double,
+    val date: String,
+    val startTime: String,
+    val endTime: String,
+    val severity: String
+)
 data class SubmitReportResult(val commentStatus: String, val severity: String)
 data class WeatherSnapshot(
     val place: Place,
@@ -199,6 +215,15 @@ private fun JSONArray.toReports(): List<CommunityReport> = (0 until length()).ma
         item.optString("id"), item.optString("reporterKey"), item.optString("place"), item.optString("county"), item.optString("date"),
         item.optString("startTime"), item.optString("endTime"), item.optString("severity"),
         item.optString("comment"), item.optString("commentStatus"), item.optString("reportedAt")
+    )
+}
+
+private fun JSONArray.toMapReports(): List<MapCommunityReport> = (0 until length()).map { index ->
+    val item = getJSONObject(index)
+    MapCommunityReport(
+        item.optString("id"), item.optString("place"), item.optString("county"),
+        item.optDouble("latitude"), item.optDouble("longitude"), item.optString("date"),
+        item.optString("startTime"), item.optString("endTime"), item.optString("severity")
     )
 }
 

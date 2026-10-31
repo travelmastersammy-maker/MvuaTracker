@@ -11,6 +11,8 @@ MvuaTracker is a standalone Kenya-focused weather application built around rainf
 - Read Kenya Meteorological Department (KMD) weather alerts matched to the selected location.
 - Submit community rain observations with a place, observation date and time, severity, and optional comment.
 - View recent nearby community reports, clearly labelled as unverified.
+- Explore recent reports across Kenya on a tappable 47-county map, with dot colour and size showing reported rain severity. Map dots use coordinates rounded to about 1 km.
+- Explore recent reports across Kenya on a tappable 47-county map, with dot colour and size showing reported rain severity. Map dots use coordinates rounded to about 1 km.
 - Screen comments before publication using local safety checks and optional automated moderation.
 - Use the responsive web app or the native Android client, which share the same API.
 
@@ -58,7 +60,7 @@ The Render blueprint in `render.yaml` configures the Node API and private Postgr
 
 ## Android app
 
-The native Android client is in `android/`. It uses the same API for location search, forecasts, KMD warnings, and community reports. Its olive-and-savannah design includes the rain dashboard, selectable hourly forecast, date ranges, community feed, report form, and privacy information.
+The native Android client is in `android/`. It uses the same API for location search, forecasts, KMD warnings, and community reports. Its olive-and-savannah design includes the rain dashboard, selectable hourly forecast, date ranges, nearby community feed, report form, and privacy information. The interactive county map is included in both the web and native Android apps.
 
 Open the `android/` directory in Android Studio to sync and run the app. The debug build defaults to `http://10.0.2.2:4174` for an Android emulator. To run the local API on that port, use `$env:PORT = "4174"` and then `node server.js` in PowerShell. A physical device needs an API address reachable over the local network. Debug builds allow cleartext only to support local development; release builds require HTTPS.
 

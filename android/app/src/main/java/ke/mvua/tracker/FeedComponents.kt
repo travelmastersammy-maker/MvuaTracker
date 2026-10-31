@@ -15,6 +15,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import ke.mvua.tracker.data.CommunityReport
+import ke.mvua.tracker.data.MapCommunityReport
 import ke.mvua.tracker.data.OfficialAlert
 
 @Composable
@@ -48,13 +49,15 @@ private fun AlertCard(alert: OfficialAlert, onOpen: () -> Unit) {
 }
 
 @Composable
-fun CommunitySection(reports: List<CommunityReport>, onReport: () -> Unit, onCommunityAction: (CommunityReport, String) -> Unit) {
+fun CommunitySection(reports: List<CommunityReport>, mapReports: List<MapCommunityReport>, mapError: String, onReport: () -> Unit, onCommunityAction: (CommunityReport, String) -> Unit) {
     Column {
         Text("Live updates from users", fontSize = 18.sp, fontWeight = FontWeight.ExtraBold, color = Ink)
         Text("Nearby · last 24 hours", fontSize = 11.sp, color = Muted)
-        Text("Shared by users and unverified. These are not Kenya Met alerts.", fontSize = 11.sp, color = Muted, modifier = Modifier.padding(top = 5.dp, bottom = 9.dp))
+        Text("Shared by users and unverified. These are not Kenya Met alerts. Recent reports also appear on the Kenya-wide map with approximate dots. Recent reports also appear on the Kenya-wide map with approximate dots.", fontSize = 11.sp, color = Muted, modifier = Modifier.padding(top = 5.dp, bottom = 9.dp))
         if (reports.isEmpty()) InfoCard("No recent reports nearby. Share what you are seeing.", false) { }
         reports.forEach { CommunityReportCard(it, onCommunityAction) }
+        Spacer(Modifier.height(14.dp))
+        CommunityMapSection(mapReports, mapError)
         Button(onClick = onReport, modifier = Modifier.fillMaxWidth().padding(top = 6.dp), colors = ButtonDefaults.buttonColors(containerColor = Olive), shape = RoundedCornerShape(15.dp)) {
             Text("＋  Is it raining where you are?", fontWeight = FontWeight.Bold, modifier = Modifier.padding(vertical = 4.dp))
         }
@@ -123,7 +126,7 @@ fun PrivacyDialog(onDismiss: () -> Unit) {
     AlertDialog(
         onDismissRequest = onDismiss,
         title = { Text("Privacy & community reports", color = Ink, fontWeight = FontWeight.Bold) },
-        text = { Text("MvuaTracker does not request device location or create user accounts. You choose the town for forecasts and reports. A report includes the selected place and coordinates, observation date/time, rainfall severity, optional comment, pseudonymous installation key, accepted guidelines version, and report time. Reports are unverified, appear in the nearby feed for up to 24 hours, and are retained for up to 30 days for moderation. Flags are retained no longer than 30 days or the target report's lifetime. Comment text may be sent to the moderation provider. Please do not include personal details. The production privacy notice and deletion-request contact must be completed before public release.", color = Muted, fontSize = 13.sp) },
+        text = { Text("MvuaTracker does not request device location or create user accounts. You choose the town for forecasts and reports. A report includes the selected place and coordinates, observation date/time, rainfall severity, optional comment, pseudonymous installation key, accepted guidelines version, and report time. Reports are unverified, appear in the nearby feed for up to 24 hours, and recent reports also appear on a Kenya-wide map with coordinates rounded to about 1 km. The map shows place, observation time and severity, not comments. Reports are retained for up to 30 days for moderation. Flags are retained no longer than 30 days or the target report's lifetime. Comment text may be sent to the moderation provider. Please do not include personal details. The production privacy notice and deletion-request contact must be completed before public release.", color = Muted, fontSize = 13.sp) },
         confirmButton = { Row { if (policyUrl.startsWith("https://")) TextButton(onClick = { context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(policyUrl))) }) { Text("Full privacy policy", color = Olive) }; TextButton(onClick = onDismiss) { Text("Close", color = Olive) } } },
         containerColor = SurfaceCream
     )

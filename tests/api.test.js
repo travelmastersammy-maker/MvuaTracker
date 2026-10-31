@@ -51,6 +51,14 @@ test('weather API returns forecast and explicit no-alert state from an empty suc
   assert.deepEqual(body.warnings.alerts, []);
 });
 
+test('serves the bundled county boundary GeoJSON to map clients', async () => {
+  const response = await fetch(baseUrl + '/kenya-counties.geojson');
+  const body = await response.json();
+  assert.equal(response.status, 200);
+  assert.equal(body.type, 'FeatureCollection');
+  assert.equal(body.features.length, 47);
+});
+
 test('reports API validates submissions and returns recent reports', async () => {
   const invalid = await fetch(baseUrl + '/api/reports', { method: 'POST', headers: { 'content-type': 'application/json' }, body: '{}' });
   const invalidBody = await invalid.json();
@@ -62,7 +70,7 @@ test('reports API validates submissions and returns recent reports', async () =>
   const parts = new Intl.DateTimeFormat('en-CA', { timeZone: 'Africa/Nairobi', year: 'numeric', month: '2-digit', day: '2-digit' }).formatToParts(yesterday);
   const dateParts = Object.fromEntries(parts.map(part => [part.type, part.value]));
   const valid = await fetch(baseUrl + '/api/reports', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({
-    reporterKey: '11111111-1111-4111-8111-111111111111', termsVersion: '2026-10-27-v1', latitude: -0.42, longitude: 36.95,
+    reporterKey: '11111111-1111-4111-8111-111111111111', termsVersion: '2026-10-31-v1', latitude: -0.42, longitude: 36.95,
     place: 'Nyeri', county: 'Nyeri County', date: dateParts.year + '-' + dateParts.month + '-' + dateParts.day,
     startTime: '23:50', endTime: '23:59', severity: 'Drizzle', comment: ''
   }) });
@@ -73,6 +81,14 @@ test('reports API validates submissions and returns recent reports', async () =>
   const listedBody = await listed.json();
   assert.equal(listed.status, 200);
   assert.equal(listedBody.reports.length, 1);
+  const mapResponse = await fetch(baseUrl + '/api/community/map');
+  const mapBody = await mapResponse.json();
+  assert.equal(mapResponse.status, 200);
+  assert.equal(mapBody.reports.length, 1);
+  assert.equal(mapBody.reports[0].county, 'Nyeri County');
+  assert.equal(mapBody.reports[0].latitude, -0.42);
+  assert.equal('reporterKey' in mapBody.reports[0], false);
+  assert.equal('comment' in mapBody.reports[0], false);
 });
 
 test('emits structured request logs without logging query-string values', async () => {

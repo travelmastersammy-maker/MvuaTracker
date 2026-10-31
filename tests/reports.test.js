@@ -3,7 +3,7 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const os = require('node:os');
 const path = require('node:path');
-const { createCommunityStore, validateCommunityReport, filterCommunityReports } = require('../lib/reports');
+const { createCommunityStore, validateCommunityReport, filterCommunityReports, filterMapCommunityReports } = require('../lib/reports');
 
 const now = new Date('2026-10-29T12:00:00+03:00');
 const validPayload = {
@@ -32,6 +32,23 @@ test('filters nearby recent reports and omits private moderation fields', () => 
   assert.equal('moderation' in visible[0], false);
   assert.equal('heldComment' in visible[0], false);
   assert.equal(filterCommunityReports(reports, 0, 40, { now: Date.parse('2026-10-29T12:00:00+03:00') }).length, 0);
+});
+
+test('map feed includes recent Kenya reports with coarse coordinates and public fields only', () => {
+  const reports = [
+    { id: 'r1', place: 'Nyeri', county: 'Nyeri County', latitude: -0.42123, longitude: 36.94759, date: '2026-10-28', startTime: '23:00', endTime: '23:30', severity: 'Heavy rain', reportedAt: now.toISOString(), observedEnd: '2026-10-29T08:30:00.000Z', reporterKey: 'private-key', comment: 'private comment', heldComment: 'held', moderation: { status: 'approved' } },
+    { id: 'old', latitude: -0.4, longitude: 36.9, observedEnd: '2026-10-28T08:00:00.000Z', reportedAt: now.toISOString() },
+    { id: 'hidden', latitude: -0.4, longitude: 36.9, observedEnd: '2026-10-29T08:00:00.000Z', reportedAt: now.toISOString(), hidden: true }
+  ];
+  const visible = filterMapCommunityReports(reports, { now: Date.parse('2026-10-29T12:00:00+03:00') });
+  assert.equal(visible.length, 1);
+  assert.equal(visible[0].latitude, -0.42);
+  assert.equal(visible[0].longitude, 36.95);
+  assert.equal(visible[0].severity, 'Heavy rain');
+  assert.equal('reporterKey' in visible[0], false);
+  assert.equal('comment' in visible[0], false);
+  assert.equal('heldComment' in visible[0], false);
+  assert.equal('moderation' in visible[0], false);
 });
 
 test('community store initializes and persists local reports and flags', async t => {

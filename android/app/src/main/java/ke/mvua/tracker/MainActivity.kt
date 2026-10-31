@@ -48,6 +48,8 @@ private fun MvuaTrackerApp(repository: MvuaRepository) {
     var place by remember { mutableStateOf(Place("Nairobi", "Nairobi County", -1.2864, 36.8172, "Africa/Nairobi")) }
     var weather by remember { mutableStateOf<WeatherSnapshot?>(null) }
     var reports by remember { mutableStateOf<List<CommunityReport>>(emptyList()) }
+    var mapReports by remember { mutableStateOf<List<MapCommunityReport>>(emptyList()) }
+    var mapError by remember { mutableStateOf("Map reports are not available yet.") }
     var loading by remember { mutableStateOf(false) }
     var error by remember { mutableStateOf("") }
     var status by remember { mutableStateOf("") }
@@ -63,6 +65,9 @@ private fun MvuaTrackerApp(repository: MvuaRepository) {
         try {
             weather = repository.weather(target)
             reports = repository.reports(target).filterNot { it.reporterKey in blockedKeys.value }
+            runCatching { repository.mapReports() }
+                .onSuccess { mapReports = it; mapError = "" }
+                .onFailure { mapReports = emptyList(); mapError = "Community map reports are temporarily unavailable." }
         } catch (e: Exception) {
             error = e.message ?: "Could not reach the MvuaTracker service. Check your connection and retry."
         } finally { loading = false }
@@ -91,7 +96,7 @@ private fun MvuaTrackerApp(repository: MvuaRepository) {
                                 finally { searching = false }
                             }
                         }, onSelectPlace = { place = it; query = ""; results = emptyList(); status = "" },
-                        weather = weather, reports = reports, onCommunityAction = { report, action ->
+                        weather = weather, reports = reports, mapReports = mapReports, mapError = mapError, onCommunityAction = { report, action ->
                             if (action == "block") {
                                 val updated = blockedKeys.value + report.reporterKey
                                 blockedKeys.value = updated

@@ -1,6 +1,6 @@
 # MvuaTracker data flow
 
-This describes the current code path and the planned Render deployment. The Render service and database are not provisioned yet, so production processing has not started.
+This describes the current code path and the planned Render deployment. The Render service and database are not provisioned yet, so production processing has not started. The web and Android maps use bundled county boundary data and do not contact an external map service. The browser map uses bundled county boundary data and does not contact an external map service.
 
 ## Forecast and alert requests
 
@@ -11,11 +11,15 @@ This describes the current code path and the planned Render deployment. The Rend
 
 ## Community reports and moderation
 
-1. Before posting, a person reads and accepts version `2026-10-27-v1` of the Community Guidelines. The client sends that version with the report; the API rejects missing or outdated acceptance and records the version and acceptance timestamp on the report.
+1. Before posting, a person reads and accepts version `2026-10-31-v1` of the Community Guidelines. The client sends that version with the report; the API rejects missing or outdated acceptance and records the version and acceptance timestamp on the report.
 2. The client creates a random installation key. It is pseudonymous, not account authentication, and may be reset or copied. The server uses it to associate reports with a contributor and deduplicate flags. The client stores blocked keys locally; blocking does not create a server-side account restriction.
 3. The API checks the report fields and screens optional comment text. If `OPENAI_API_KEY` is configured, comment text is sent to OpenAI moderation; otherwise comments stay hidden pending review. Approved comments and reports remain labelled unverified.
 4. When `DATABASE_URL` is configured, report data and moderation flags are stored in PostgreSQL. Without it, local development uses `data/community-reports.json` and `data/community-flags.json`. Production mode refuses to start without `DATABASE_URL`.
 5. A flag is stored with its type, reason, target report/contributor key, pseudonymous actor key, timestamp, and status. Three distinct installation keys on the same target trigger automatic hiding. This threshold is an anti-abuse baseline, not a substitute for a staffed review and appeal process.
+6. The public `GET /api/community/map` endpoint returns visible observations from the last 24 hours for the Kenya-wide map. It returns place, county, time, severity, and coordinates rounded to two decimal degrees (about 1 km); it omits comments, reporter keys, and moderation data. County boundaries are bundled from geoBoundaries Kenya ADM1 (47 counties; public-domain boundary source RCMRD GeoPortal / Africa GeoPortal).
+7. Community terms version `2026-10-31-v1` tells users that recent reports can appear on this nationwide map. The nearby feed continues to use the original, unrounded report coordinates and a 30 km search radius.
+6. The public `GET /api/community/map` endpoint returns visible observations from the last 24 hours for the Kenya-wide map. It returns place, county, time, severity, and coordinates rounded to two decimal degrees (about 1 km); it omits comments, reporter keys, and moderation data. County boundaries are bundled from geoBoundaries Kenya ADM1 (47 counties; public-domain boundary source RCMRD GeoPortal / Africa GeoPortal).
+7. Community terms version `2026-10-31-v1` tells users that recent reports can appear on this nationwide map. The nearby feed continues to use the original, unrounded report coordinates and a 30 km search radius.
 
 The Android release build receives the deployed API address through Gradle property `MVUA_API_BASE_URL`. Set it to the Render service's generated HTTPS URL after provisioning; debug builds continue to use the local emulator address. Do not put `DATABASE_URL` or `OPENAI_API_KEY` in Android or browser builds.
 

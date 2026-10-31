@@ -1,6 +1,6 @@
 # MvuaTracker privacy policy — draft for completion before Play release
 
-**Last updated:** 27 October 2026
+**Last updated:** 31 October 2026
 **Data controller:** [Insert legal name of the person or entity operating MvuaTracker]
 **Privacy contact:** [Insert monitored email and/or postal contact]
 **Public policy URL:** [Publish this policy at a stable HTTPS URL and set `MVUA_PRIVACY_POLICY_URL` in the Android release build]
@@ -8,7 +8,7 @@
 ## Information MvuaTracker processes
 
 - **Chosen forecast location:** the town/county selected by the user and its coordinates, sent to the MvuaTracker API to retrieve a forecast and nearby reports. The app does not request the device's GPS location.
-- **Community rain observation:** selected town/county and coordinates, observation date and time range, severity, optional comment, and submission time. Reports are shown as unverified, matched to nearby forecast locations, and displayed for a limited live-feed window.
+- **Community rain observation:** selected town/county and coordinates, observation date and time range, severity, optional comment, and submission time. Reports are shown as unverified, matched to nearby forecast locations, and displayed in the nearby feed for up to 24 hours. Recent observations also appear on a Kenya-wide map. The map displays place, county, time, and severity with coordinates rounded to two decimal degrees (about 1 km); it does not expose comments or pseudonymous reporter keys. The original coordinates remain in service storage and support the nearby-feed radius filter.
 - **Community safety controls:** a random per-installation pseudonymous key is sent with a report and used to associate posts and deduplicate content/contributor flags. It is not an account identifier or verified identity. The key and accepted Community Guidelines version/time are included in the report record. A block list is stored locally on the user's device. Flags include reason, target, reporter key, and timestamp.
 - **Comment moderation:** comment text may be sent by the service to its automated moderation provider. The provider's current identity, privacy notice, processing terms, international transfer safeguards, and retention settings must be confirmed and named here before public launch.
 - **Weather services:** forecast lookups use Open-Meteo. Official warning data comes from the Kenya Meteorological Department. Confirm and document any data those providers receive from the production configuration.

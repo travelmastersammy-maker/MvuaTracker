@@ -105,7 +105,7 @@ fun ReportPage(repository: MvuaRepository, initialPlace: Place, onCancel: () -> 
             placeholder = { Text("What are you seeing? Please do not include names or contact details.") }, shape = RoundedCornerShape(14.dp)
         )
         Text("${comment.length} / 280", Modifier.align(Alignment.End), color = Muted, fontSize = 10.sp)
-        Text("Rain observations are unverified. Comments are screened automatically and may be withheld. Reports are visible in the nearby feed for up to 24 hours and kept for up to 30 days for moderation. Do not include personal information.", color = Muted, fontSize = 10.sp, modifier = Modifier.padding(vertical = 8.dp))
+        Text("Rain observations are unverified. Comments are screened automatically and may be withheld. Recent reports can appear on the Kenya-wide map at an approximate location (coordinates rounded to about 1 km). Reports are visible for up to 24 hours and kept for up to 30 days for moderation. Do not include personal information.", color = Muted, fontSize = 10.sp, modifier = Modifier.padding(vertical = 8.dp))
         Row(verticalAlignment = Alignment.CenterVertically) {
             Checkbox(checked = termsAccepted, onCheckedChange = { termsAccepted = it })
             Text("I agree to the", fontSize = 11.sp, color = Ink)
@@ -131,7 +131,7 @@ fun ReportPage(repository: MvuaRepository, initialPlace: Place, onCancel: () -> 
     if (showTerms) AlertDialog(
         onDismissRequest = { showTerms = false },
         title = { Text("Community Guidelines & Terms") },
-        text = { Text("Share only genuine, recent rainfall observations. Do not post personal information, threats, harassment, vulgar or derogatory content, spam, or dangerous false claims. Comments may be screened, held, or removed. Rain reports are unverified and are not emergency advice. Reports are visible in the nearby feed for up to 24 hours and retained for up to 30 days for moderation. You can report a post or contributor and block a contributor. Multiple independent flags may hide content or updates from a contributor.") },
+        text = { Text("Share only genuine, recent rainfall observations. Do not post personal information, threats, harassment, vulgar or derogatory content, spam, or dangerous false claims. Comments may be screened, held, or removed. Rain reports are unverified and are not emergency advice. Recent reports may be shown to all app users on the Kenya-wide map with coordinates rounded to about 1 km; the map shows place, observation time and severity, not comments. Reports are visible for up to 24 hours and retained for up to 30 days for moderation. You can report a post or contributor and block a contributor. Multiple independent flags may hide content or updates from a contributor.") },
         confirmButton = { TextButton(onClick = { showTerms = false }) { Text("Close") } }
     )
 }
